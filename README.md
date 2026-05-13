@@ -9,14 +9,12 @@ Raw sequencing data and large intermediate files are not stored in this GitHub r
 
 ## Repository structure
 
-```text
 metagenomics_project/
-├── 00_raw_data/
+├── 00_raw_data/              # placeholder only
 ├── 01_metadata/
 ├── 02_qc/
 │   ├── fastqc_raw/
 │   ├── multiqc_raw/
-│   ├── trimmed_reads/
 │   ├── fastqc_trimmed/
 │   └── multiqc_trimmed/
 ├── 03_host_removal/

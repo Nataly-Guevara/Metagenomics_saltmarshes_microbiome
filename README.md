@@ -35,3 +35,13 @@ metagenomics_project/
 │   ├── R/
 │   └── python/
 └── README.md
+
+**Data policy**
+
+The repository excludes large sequencing and intermediate files, including FASTQ files, BAM/SAM files, large compressed outputs, and large R objects. These files remain on the HPC system or institutional storage.
+
+**Project status**
+
+This repository is under active development. Scripts and documentation will be added as the metagenomics workflow progresses.
+
+

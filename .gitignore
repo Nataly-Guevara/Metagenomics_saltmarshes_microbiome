@@ -1,0 +1,41 @@
+# Raw sequencing data
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+
+# Alignment and large bioinformatics files
+*.bam
+*.sam
+*.cram
+*.fasta
+*.fa
+*.fna
+*.contigs
+*.bt2
+*.bt2l
+
+# Compressed outputs
+*.zip
+*.tar
+*.tar.gz
+*.gz
+
+# Large R objects
+*.rds
+*.RData
+
+# Logs and temporary files
+*.log
+*.out
+*.err
+*.tmp
+
+# Mac system files
+.DS_Store
+
+# Sensitive/private files
+*password*
+*secret*
+*token*
+*key*

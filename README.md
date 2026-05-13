@@ -1,5 +1,15 @@
-# Metagenomics_saltmarshes_microbiome
 
+# Metagenomics Saltmarsh Microbiome
+
+This repository contains the computational workflow for shotgun metagenomic analysis of saltmarsh sediment microbial communities.
+
+The project includes scripts and documentation for quality control, read trimming, lane merging, host or contaminant read removal, taxonomic profiling, functional annotation, assembly, binning, and summary reporting.
+
+Raw sequencing data and large intermediate files are not stored in this GitHub repository.
+
+## Repository structure
+
+```text
 metagenomics_project/
 ├── 00_raw_data/
 ├── 01_metadata/

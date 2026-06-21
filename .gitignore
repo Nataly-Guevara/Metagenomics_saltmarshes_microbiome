@@ -4,32 +4,68 @@
 *.fq
 *.fq.gz
 
-# Alignment and large bioinformatics files
+# Alignment and mapping files
 *.bam
+*.bai
 *.sam
 *.cram
+*.crai
+
+# Assembly and MAG FASTA files
 *.fasta
 *.fa
 *.fna
+*.ffn
+*.faa
 *.contigs
+
+# Bowtie/BWA/index files
 *.bt2
 *.bt2l
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa
 
-# Compressed outputs
+# Large compressed outputs
 *.zip
 *.tar
 *.tar.gz
+*.tgz
 *.gz
 
-# Large R objects
+# Large R/Python objects
 *.rds
 *.RData
+*.h5
+*.hdf5
+*.pkl
 
-# Logs and temporary files
+# HPC outputs and logs
 *.log
 *.out
 *.err
 *.tmp
+*.o[0-9]*
+*.e[0-9]*
+core.*
+
+# Large workflow output directories
+results/
+raw_data/
+data/raw/
+databases/
+GTDBTk_*/
+checkm2_*/
+dRep_*/
+failed_*/
+
+# Local environment folders
+env/
+envs/conda/
+.venv/
+__pycache__/
 
 # Mac system files
 .DS_Store

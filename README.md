@@ -1,68 +1,74 @@
-cat > README.md << 'EOF'
 # Metagenomics Saltmarsh Microbiome
 
-This repository contains the computational workflow for shotgun metagenomic analysis of saltmarsh sediment microbial communities.
+This repository contains the reproducible bioinformatics workflow for shotgun metagenomic analysis of saltmarsh sediment microbial communities.
 
-Raw sequencing data and large intermediate files are not stored in this GitHub repository. This repository is intended to store scripts, small metadata files, selected QC reports, summary tables, figures, and documentation.
+The repository is designed to store **scripts, documentation, software notes, metadata templates, and small summary outputs**. Raw sequencing reads and large intermediate files are not stored here.
 
 ## Repository structure
 
 ```text
-metagenomics_project/
-├── 00_raw_data/
-├── 01_metadata/
-├── 02_qc/
-│   ├── fastqc_raw/
-│   ├── multiqc_raw/
-│   ├── fastqc_trimmed/
-│   └── multiqc_trimmed/
-├── 03_host_removal/
-├── 04_taxonomy/
-├── 05_function/
-├── 06_assembly/
-├── 07_bins/
-├── 08_results/
-│   ├── tables/
-│   ├── figures/
-│   └── summary_reports/
-├── 09_logs/
-├── 10_scripts/
-│   ├── bash/
-│   ├── pbs/
-│   ├── R/
-│   └── python/
-└── README.md
+Metagenomics_saltmarshes_microbiome/
+├── README.md
+├── .gitignore
+├── metadata/
+│   ├── NCBI_accessions.md
+│   └── sample_metadata.tsv
+├── scripts/
+│   ├── 00_setup/
+│   ├── 01_quality_control/
+│   ├── 02_host_removal/
+│   ├── 03_assembly/
+│   ├── 04_mapping_depth/
+│   ├── 05_binning/
+│   ├── 06_MAG_quality/
+│   ├── 07_dereplication/
+│   └── 08_taxonomy/
+├── envs/
+│   └── software_notes.md
+├── docs/
+│   └── pipeline_overview.md
+└── results_summary/
+    ├── filtering_summary.tsv
+    └── drep_summary.tsv
 ```
 
-## Folder descriptions
+## Data availability
 
-- `00_raw_data/`: placeholder only. Raw FASTQ files remain on HPC storage and are not uploaded to GitHub.
-- `01_metadata/`: sample metadata, experimental design files, and soil parameter tables, if small and non-sensitive.
-- `02_qc/`: selected quality-control reports from FastQC and MultiQC.
-- `03_host_removal/`: scripts and small summary outputs related to host or contaminant read removal.
-- `04_taxonomy/`: scripts and small taxonomic profiling summaries.
-- `05_function/`: scripts and small functional annotation summaries.
-- `06_assembly/`: scripts and small assembly statistics. Large contig files are not uploaded.
-- `07_bins/`: scripts and small binning/MAG quality summaries. MAG FASTA files are not uploaded.
-- `08_results/`: selected final tables, figures, and summary reports.
-- `09_logs/`: selected small job logs or run summaries.
-- `10_scripts/`: bash, PBS, R, and Python scripts used in the workflow.
+Raw metagenomic sequencing data are not stored in this GitHub repository because of file size and reproducibility best practices. Raw reads should be deposited in NCBI and referenced using BioProject, BioSample, and SRA accession numbers in `metadata/NCBI_accessions.md`.
 
-## Data policy
+Large intermediate files, including trimmed reads, host-filtered reads, assemblies, BAM files, MAG FASTA files, GTDB-Tk databases, CheckM2 databases, and temporary job outputs, should remain on HPC or institutional storage.
 
-The following files are excluded from this repository:
+## Workflow overview
 
-- raw sequencing reads
-- trimmed reads
-- host-filtered reads
-- large assembly files
-- large bin/MAG files
-- large compressed outputs
-- large R objects
+The current workflow includes:
 
-These files should remain on Gadi, Gandalf, or institutional storage.
+1. Quality control and read trimming
+2. Host and contaminant read removal
+3. Assembly with MEGAHIT
+4. Read mapping and depth generation
+5. Genome binning with MetaBAT2
+6. MAG quality assessment with CheckM2
+7. MAG filtering and dereplication with dRep
+8. Taxonomic classification with GTDB-Tk
+
+## Notes on reproducibility
+
+PBS scripts are written for Gadi/NCI and may require adjustment for other HPC systems. Software installation notes and database locations should be documented in `envs/software_notes.md`.
+
+## What is not tracked
+
+The repository intentionally excludes:
+
+- raw FASTQ files
+- trimmed FASTQ files
+- host-filtered FASTQ files
+- BAM/SAM/CRAM alignment files
+- large assembly FASTA files
+- MAG/bin FASTA files
+- GTDB-Tk, CheckM2, or other reference databases
+- failed run folders and large intermediate outputs
+- PBS `.o`, `.e`, `.log`, `.out`, and `.err` files
 
 ## Project status
 
 This repository is under active development. Scripts and documentation will be added as the metagenomics workflow progresses.
-EOF

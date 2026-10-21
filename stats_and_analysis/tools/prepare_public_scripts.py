@@ -103,8 +103,9 @@ def main():
             ast.parse(cleaned, filename=src.name)
             python_count += 1
         if src.suffix in (".pbs", ".sh"):
-            result = subprocess.run(["bash", "-n"], input=cleaned, text=True,
-                                    capture_output=True)
+            result = subprocess.run(["bash", "-n"], input=cleaned,
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode:
                 raise ValueError("Shell syntax check failed: " + src.name)
             shell_count += 1
@@ -119,7 +120,7 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
 
-    temp = Path(tempfile.mkdtemp(prefix=".public_scripts_", dir=stats))
+    temp = Path(tempfile.mkdtemp(prefix=".public_scripts_", dir=str(stats)))
     try:
         for name, content in prepared.items():
             put(temp, name, content)

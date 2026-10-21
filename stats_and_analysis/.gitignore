@@ -1,0 +1,4 @@
+# Full local collection: keep private. Public source code is in scripts/.
+/chapter2/
+/external_inputs/
+/.public_scripts_*/

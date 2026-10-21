@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=04:00:00
+#PBS -l mem=8GB
+#PBS -l ncpus=1
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+cd /path/to/metagenomics_project
+
+OUT="results/final_cleaned_reads_summary/nohost_merged_read_counts.tsv"
+
+echo -e "sample_id\tR1_reads\tR2_reads" > "$OUT"
+
+for R1 in data/nohost_merged_samples/*_nohost_merged_R1.fastq.gz; do
+
+    sample=$(basename "$R1" _nohost_merged_R1.fastq.gz)
+    R2="data/nohost_merged_samples/${sample}_nohost_merged_R2.fastq.gz"
+
+    echo "Counting $sample"
+
+    R1_reads=$(zcat "$R1" | awk 'END{print NR/4}')
+    R2_reads=$(zcat "$R2" | awk 'END{print NR/4}')
+
+    echo -e "${sample}\t${R1_reads}\t${R2_reads}" >> "$OUT"
+
+done
+
+echo "Read counting completed."
+

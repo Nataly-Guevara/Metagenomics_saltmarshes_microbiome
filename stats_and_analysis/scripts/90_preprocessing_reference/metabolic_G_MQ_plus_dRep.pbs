@@ -1,0 +1,45 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=32
+#PBS -l mem=192GB
+#PBS -l jobfs=250GB
+#PBS -l walltime=48:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N metabolic_G_MQ
+
+set -euo pipefail
+
+module load hmmer/3.4
+module load R/4.5.0
+
+export PATH="$HOME/.local/bin:$PATH"
+export PERL5LIB="$HOME/perl5/lib/perl5:${PERL5LIB:-}"
+
+METABOLIC_DIR=/path/to/local/tools/METABOLIC
+GENOME_DIR=/path/to/metagenomics_project/results/METABOLIC_input_MAGs_fasta
+OUT_DIR=/path/to/metagenomics_project/results/METABOLIC_G_MQ_plus_dRep
+
+mkdir -p "$OUT_DIR"
+
+cd "$METABOLIC_DIR"
+
+echo "Dependency check"
+which perl
+which prodigal
+which hmmsearch
+which hmmpress
+which diamond
+
+echo "Input MAG count:"
+find "$GENOME_DIR" -type f -name "*.fasta" | wc -l
+
+perl METABOLIC-G.pl \
+  -t 32 \
+  -m-cutoff 0.75 \
+  -in-gn "$GENOME_DIR" \
+  -kofam-db full \
+  -p meta \
+  -o "$OUT_DIR"

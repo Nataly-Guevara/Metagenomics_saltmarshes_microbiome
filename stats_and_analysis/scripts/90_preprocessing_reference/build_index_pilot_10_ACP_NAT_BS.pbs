@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=02:00:00
+#PBS -l mem=32GB
+#PBS -l ncpus=4
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load bowtie2/2.3.5.1
+
+cd /path/to/metagenomics_project
+
+SAMPLE="10_ACP_NAT_BS_22TNJ5LT3_ATACATCACA-TCTCCATTGA"
+
+CONTIGS="assemblies/megahit_pilot/${SAMPLE}/final.contigs.fa"
+INDEX_DIR="assemblies/megahit_pilot/${SAMPLE}/bowtie2_index"
+INDEX_PREFIX="${INDEX_DIR}/${SAMPLE}_contigs"
+
+mkdir -p "$INDEX_DIR"
+
+bowtie2-build "$CONTIGS" "$INDEX_PREFIX"
+
+echo "Bowtie2 index completed for ${SAMPLE}"
+

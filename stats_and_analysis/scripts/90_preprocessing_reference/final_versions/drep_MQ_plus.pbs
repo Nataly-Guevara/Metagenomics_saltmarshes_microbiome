@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=16
+#PBS -l mem=128GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N drep_MQ_plus
+
+module load python3/3.11.7
+
+export PATH="$HOME/.local/bin:$HOME/.local/bin/mash-Linux64-v2.3:$PATH"
+
+mkdir -p results/dRep_MQ_plus
+
+dRep dereplicate results/dRep_MQ_plus \
+  -g results/filtered_MAGs/MQ_plus/*.fa \
+  --ignoreGenomeQuality \
+  --S_algorithm skani \
+  -p 16

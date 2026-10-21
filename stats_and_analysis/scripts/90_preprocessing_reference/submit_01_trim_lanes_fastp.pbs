@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l ncpus=8
+#PBS -l mem=32GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+#PBS -N fastp_trim_metaG
+#PBS -o logs/fastp_trim_metaG.o
+#PBS -e logs/fastp_trim_metaG.e
+
+module load fastp/0.20.0
+
+cd /path/to/metagenomics_project
+
+./scripts/01_trim_lanes_fastp.sh

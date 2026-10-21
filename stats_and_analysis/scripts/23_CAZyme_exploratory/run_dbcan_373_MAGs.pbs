@@ -1,0 +1,172 @@
+#!/bin/bash
+
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=24
+#PBS -l mem=96GB
+#PBS -l jobfs=100GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -N dbcan_373_MAGs
+
+set -euo pipefail
+
+
+# ============================================================
+# PROJECT PATHS
+# ============================================================
+
+PROJECT="/path/to/metagenomics_project"
+
+INPUT="${PROJECT}/results/ecological_strategies/salicornia_cazyme/input/final_373_MAGs_proteins.faa"
+
+DBCAN_DB="/path/to/local/dbcan_db"
+
+OUTDIR="${PROJECT}/results/ecological_strategies/salicornia_cazyme/dbcan_annotation"
+
+LOGDIR="${PROJECT}/results/ecological_strategies/salicornia_cazyme/logs"
+
+
+mkdir -p "${OUTDIR}"
+mkdir -p "${LOGDIR}"
+
+
+# ============================================================
+# SOFTWARE
+# ============================================================
+
+module load python3/3.11.7
+
+source /path/to/local/venvs/dbcan/bin/activate
+
+# DIAMOND was installed in the user's local bin.
+export PATH="${HOME}/.local/bin:${PATH}"
+
+# Use all CPUs requested from PBS.
+export OMP_NUM_THREADS="${PBS_NCPUS}"
+
+
+# ============================================================
+# BASIC QC
+# ============================================================
+
+echo "============================================================"
+echo "dbCAN CAZyme annotation - 373 saltmarsh MAGs"
+echo "============================================================"
+echo
+echo "Job ID:        ${PBS_JOBID}"
+echo "Host:          $(hostname)"
+echo "Start time:    $(date)"
+echo "CPUs:          ${PBS_NCPUS}"
+echo "Input:         ${INPUT}"
+echo "Database:      ${DBCAN_DB}"
+echo "Output:        ${OUTDIR}"
+echo
+
+echo "Python:"
+python3 --version
+
+echo
+echo "dbCAN:"
+run_dbcan version || true
+
+echo
+echo "DIAMOND:"
+diamond version
+
+echo
+echo "Input protein count:"
+grep -c '^>' "${INPUT}"
+
+echo
+echo "Database files:"
+ls -lh "${DBCAN_DB}"
+
+echo
+echo "============================================================"
+echo "Starting dbCAN annotation"
+echo "============================================================"
+echo
+
+
+# ============================================================
+# RUN dbCAN
+# ============================================================
+#
+# methods=all uses the complementary CAZyme annotation methods:
+#
+#   DIAMOND
+#   dbCAN HMM
+#   dbCAN-sub
+#
+# We retain all individual outputs plus overview.tsv so that
+# later analyses can distinguish:
+#
+#   family-level CAZyme evidence
+#   subfamily/substrate predictions
+#   consensus annotations
+#
+# ============================================================
+
+run_dbcan CAZyme_annotation \
+    --mode protein \
+    --input_raw_data "${INPUT}" \
+    --methods diamond,hmm,dbCANsub
+    --output_dir "${OUTDIR}" \
+    --db_dir "${DBCAN_DB}" \
+    --threads "${PBS_NCPUS}" \
+    --log-file "${LOGDIR}/dbcan_${PBS_JOBID}.log" \
+    --log-level INFO
+
+
+# ============================================================
+# POST-RUN QC
+# ============================================================
+
+echo
+echo "============================================================"
+echo "dbCAN annotation completed"
+echo "============================================================"
+echo
+echo "Finish time: $(date)"
+echo
+
+echo "Output files:"
+ls -lh "${OUTDIR}"
+
+echo
+
+if [ -f "${OUTDIR}/overview.tsv" ]; then
+
+    echo "overview.tsv lines:"
+    wc -l "${OUTDIR}/overview.tsv"
+
+    echo
+    echo "First five lines:"
+    head -n 5 "${OUTDIR}/overview.tsv"
+
+else
+
+    echo "WARNING: overview.tsv was not created."
+
+fi
+
+
+echo
+echo "============================================================"
+echo "NEXT ANALYTICAL STEP"
+echo "============================================================"
+echo
+echo "Map dbCAN gene IDs back to Final_MAG and classify"
+echo "Salicornia-relevant carbohydrate-use potential:"
+echo
+echo "  1. cellulose"
+echo "  2. xylan / arabinoxylan"
+echo "  3. pectin / arabinan"
+echo
+echo "Then analyse CGCs separately using the matching GFF3."
+echo "============================================================"
+
+
+deactivate

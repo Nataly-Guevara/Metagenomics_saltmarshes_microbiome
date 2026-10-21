@@ -1,0 +1,48 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=06:00:00
+#PBS -l mem=32GB
+#PBS -l ncpus=8
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load bowtie2/2.3.5.1
+
+cd /path/to/metagenomics_project
+
+IN_DIR="data/trimmed_lanes_v2"
+OUT_DIR="data/nohuman_lanes"
+LOG_DIR="logs/human_removal"
+INDEX="references/human/GRCh38/human_GRCh38"
+
+mkdir -p "$OUT_DIR" "$LOG_DIR"
+
+for R1 in ${IN_DIR}/*_trimmed_R1.fastq.gz; do
+
+    SAMPLE=$(basename "$R1" _trimmed_R1.fastq.gz)
+    R2="${IN_DIR}/${SAMPLE}_trimmed_R2.fastq.gz"
+
+    OUT_R1="${OUT_DIR}/${SAMPLE}_nohuman_R1.fastq.gz"
+    OUT_R2="${OUT_DIR}/${SAMPLE}_nohuman_R2.fastq.gz"
+
+    if [[ -s "$OUT_R1" && -s "$OUT_R2" ]]; then
+        echo "Skipping completed: $SAMPLE"
+        continue
+    fi
+
+    echo "Processing missing sample: $SAMPLE"
+
+    bowtie2 \
+      -x "$INDEX" \
+      -1 "$R1" \
+      -2 "$R2" \
+      --very-sensitive \
+      --threads 8 \
+      --un-conc-gz "${OUT_DIR}/${SAMPLE}_nohuman_R%.fastq.gz" \
+      -S /dev/null \
+      2> "${LOG_DIR}/${SAMPLE}_human_removal.log"
+
+done
+
+echo "Resume human read removal completed."

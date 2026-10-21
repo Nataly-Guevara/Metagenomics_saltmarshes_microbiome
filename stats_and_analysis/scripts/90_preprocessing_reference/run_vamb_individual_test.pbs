@@ -1,0 +1,76 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=8
+#PBS -l mem=64GB
+#PBS -l walltime=12:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -N vamb_test
+#PBS -r y
+#PBS -o logs/vamb
+#PBS -e logs/vamb
+
+set -euo pipefail
+
+cd /path/to/metagenomics_project
+
+module load python3/3.11.7
+
+export PYTHONUSERBASE=/path/to/local/python_userbase
+export PATH="$PYTHONUSERBASE/bin:$PATH"
+export TMPDIR=/path/to/local/tmp
+export OMP_NUM_THREADS=8
+
+mkdir -p results/vamb_individual logs/vamb "$TMPDIR"
+
+# Single-sample test: first sample in sample_ids.txt
+PBS_ARRAY_INDEX=1
+
+SAMPLE=$(sed -n "${PBS_ARRAY_INDEX}p" results/vamb_individual/sample_ids.txt)
+
+FASTA="assemblies/individual/${SAMPLE}/final.contigs.fa"
+BAMDIR="mapping/individual/${SAMPLE}"
+OUTDIR="results/vamb_individual/${SAMPLE}"
+
+echo "=========================================="
+echo "Running VAMB single-sample test"
+echo "Sample: ${SAMPLE}"
+echo "Index: ${PBS_ARRAY_INDEX}"
+echo "FASTA: ${FASTA}"
+echo "BAMDIR: ${BAMDIR}"
+echo "OUTDIR: ${OUTDIR}"
+echo "Started: $(date)"
+echo "=========================================="
+
+if [[ ! -s "$FASTA" ]]; then
+    echo "ERROR: Missing or empty FASTA: $FASTA" >&2
+    exit 1
+fi
+
+if [[ ! -d "$BAMDIR" ]]; then
+    echo "ERROR: Missing BAM directory: $BAMDIR" >&2
+    exit 1
+fi
+
+if ! ls "${BAMDIR}"/*.bam >/dev/null 2>&1; then
+    echo "ERROR: No BAM files found in: $BAMDIR" >&2
+    exit 1
+fi
+
+# VAMB requires that the output directory does NOT already exist
+rm -rf "$OUTDIR"
+
+vamb bin default \
+    --outdir "$OUTDIR" \
+    --fasta "$FASTA" \
+    --bamdir "$BAMDIR" \
+    -m 1500 \
+    -p 8 \
+    --minfasta 200000 \
+    -o ""
+
+echo "=========================================="
+echo "VAMB finished successfully"
+echo "Sample: ${SAMPLE}"
+echo "Finished: $(date)"
+echo "=========================================="

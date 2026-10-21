@@ -1,0 +1,58 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=8
+#PBS -l mem=64GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N drep_combined
+
+set -euo pipefail
+
+module load python3/3.11.7
+
+export PYTHONUSERBASE=/path/to/local/python_userbase
+export PIP_CACHE_DIR=/path/to/local/pip_cache
+export TMPDIR=/path/to/local/tmp
+export PATH="$PYTHONUSERBASE/bin:$HOME/.local/bin:$HOME/.local/bin/mash-Linux64-v2.3:$PATH"
+hash -r
+
+cd /path/to/metagenomics_project
+
+IN_DIR="results/combined_binners_MQ_plus"
+OUT_DIR="results/dRep_combined_binners_MQ_plus"
+GENOME_LIST="results/combined_binners_MQ_plus_genomes.txt"
+
+echo "Using dRep:"
+which dRep
+python3 -c "import drep; print(drep.__file__)"
+
+echo "Using skani:"
+which skani
+
+echo "Using mash:"
+which mash
+
+echo "Running dRep on combined MetaBAT2 + VAMB MQ+ bins"
+echo "Input directory: $IN_DIR"
+echo "Output directory: $OUT_DIR"
+
+find "$IN_DIR" -maxdepth 1 \( -name "*.fa" -o -name "*.fna" -o -name "*.fasta" \) | sort > "$GENOME_LIST"
+
+echo "Number of input bins:"
+wc -l "$GENOME_LIST"
+
+rm -rf "$OUT_DIR"
+mkdir -p "$OUT_DIR"
+
+dRep dereplicate "$OUT_DIR" \
+  -g $(cat "$GENOME_LIST") \
+  --ignoreGenomeQuality \
+  --S_algorithm skani \
+  -p 8
+
+echo "dRep completed"
+echo "Number of dereplicated genomes:"
+find "$OUT_DIR/dereplicated_genomes" -maxdepth 1 \( -name "*.fa" -o -name "*.fna" -o -name "*.fasta" \) | wc -l

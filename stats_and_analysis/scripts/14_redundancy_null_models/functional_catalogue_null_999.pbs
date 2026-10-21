@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=1
+#PBS -l mem=8GB
+#PBS -l walltime=08:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N H4_carrier_null
+
+set -euo pipefail
+
+cd /path/to/metagenomics_project
+
+echo "Starting H4 catalogue-wide null model"
+date
+
+python3 scripts/test_functional_catalogue_null.py --permutations 999
+
+echo "Completed H4 catalogue-wide null model"
+date

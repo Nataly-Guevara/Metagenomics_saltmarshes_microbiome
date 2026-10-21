@@ -1,0 +1,39 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=8
+#PBS -l mem=16GB
+#PBS -l walltime=04:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N prodigal_373
+
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+IN_DIR="results/dRep_combined_binners_MQ_plus/gtdbtk_input_fa"
+OUT_DIR="results/functional_annotation/prodigal"
+
+mkdir -p "$OUT_DIR"/{proteins,genes,gff}
+
+find "$IN_DIR" -maxdepth 1 -name "*.fa" -print0 | \
+xargs -0 -n 1 -P 8 bash -c '
+    f="$1"
+    base=$(basename "$f" .fa)
+
+    prodigal \
+      -i "$f" \
+      -a "'"$OUT_DIR"'/proteins/${base}.faa" \
+      -d "'"$OUT_DIR"'/genes/${base}.fna" \
+      -f gff \
+      -o "'"$OUT_DIR"'/gff/${base}.gff" \
+      -p meta \
+      -q
+' _
+
+echo "MAGs processed:"
+find "$OUT_DIR/proteins" -maxdepth 1 -name "*.faa" | wc -l
+
+echo "Prodigal completed."

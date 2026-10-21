@@ -1,0 +1,58 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=32
+#PBS -l mem=128GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l jobfs=250GB
+#PBS -l wd
+#PBS -j oe
+#PBS -N gtdbtk_combined
+
+set -euo pipefail
+
+module load python3/3.11.7
+module load hmmer/3.4
+
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin/mash-Linux64-v2.3:$PATH"
+export PATH="$HOME/.local/bin/pplacer-Linux-v1.1.alpha19:$PATH"
+
+export GTDBTK_DATA_PATH=/path/to/local/databases/gtdbtk/release232
+
+IN_DIR="results/dRep_combined_binners_MQ_plus/gtdbtk_input_fa"
+OUT_DIR="results/GTDBTk_combined_binners_dRep"
+
+echo "Running GTDB-Tk on combined MetaBAT2 + VAMB dereplicated MAGs"
+echo "Input directory: $IN_DIR"
+echo "Output directory: $OUT_DIR"
+echo "GTDBTK_DATA_PATH: $GTDBTK_DATA_PATH"
+echo "Number of input MAGs:"
+find "$IN_DIR" -maxdepth 1 -name "*.fa" | wc -l
+
+echo "Checking dependencies..."
+which gtdbtk
+which prodigal
+which hmmalign
+which hmmsearch
+which pplacer
+which guppy
+which FastTree
+which FastTreeMP
+which skani
+which mash
+
+rm -rf "$OUT_DIR"
+mkdir -p "$OUT_DIR"
+
+gtdbtk classify_wf \
+  --genome_dir "$IN_DIR" \
+  --out_dir "$OUT_DIR" \
+  --extension fa \
+  --cpus 32 \
+  --pplacer_cpus 4 \
+  --scratch_dir "$PBS_JOBFS"
+
+echo "GTDB-Tk completed"
+ls -lh "$OUT_DIR"

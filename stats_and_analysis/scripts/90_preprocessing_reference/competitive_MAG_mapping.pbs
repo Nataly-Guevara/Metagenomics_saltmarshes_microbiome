@@ -1,0 +1,139 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=16
+#PBS -l mem=64GB
+#PBS -l walltime=24:00:00
+#PBS -l jobfs=100GB
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -o mapping/competitive_MAGs/logs/competitive_MAG_mapping.log
+
+set -euo pipefail
+
+module load bowtie2/2.3.5.1
+module load samtools/1.23.1
+
+THREADS=16
+
+GENOME_DIR="results/dRep_combined_binners_MQ_plus/dereplicated_genomes"
+READ_DIR="data/nohost_lanes"
+OUTDIR="mapping/competitive_MAGs"
+
+REF="${OUTDIR}/reference/final_373_MAGs_prefixed.fna"
+INDEX="${OUTDIR}/reference/final_373_MAGs"
+
+mkdir -p \
+    "${OUTDIR}/reference" \
+    "${OUTDIR}/bam" \
+    "${OUTDIR}/coverage" \
+    "${OUTDIR}/logs"
+
+########################################################################
+# 1. Build a combined reference with MAG-prefixed contig identifiers
+########################################################################
+
+if [[ ! -s "${REF}" ]]; then
+    : > "${REF}"
+
+    find "${GENOME_DIR}" -maxdepth 1 -type f \
+        \( -name "*.fa" -o -name "*.fna" -o -name "*.fasta" \) \
+        -print0 |
+    sort -z |
+    while IFS= read -r -d '' genome; do
+        mag=$(basename "${genome}")
+        mag=${mag%.fa}
+        mag=${mag%.fna}
+        mag=${mag%.fasta}
+
+        awk -v mag="${mag}" '
+            /^>/ {
+                sub(/^>/, "")
+                split($0, fields, /[[:space:]]+/)
+                print ">" mag "__" fields[1]
+                next
+            }
+            { print }
+        ' "${genome}" >> "${REF}"
+    done
+fi
+
+########################################################################
+# 2. Build Bowtie2 index
+########################################################################
+
+if [[ ! -s "${INDEX}.1.bt2" && ! -s "${INDEX}.1.bt2l" ]]; then
+    bowtie2-build --threads "${THREADS}" "${REF}" "${INDEX}"
+fi
+
+########################################################################
+# 3. Map each biological sample competitively against all 373 MAGs
+########################################################################
+
+mapfile -t SAMPLES < <(
+    find "${READ_DIR}" -maxdepth 1 -type f \
+        -name "*_nohost_R1.fastq.gz" -printf "%f\n" |
+    sed -E 's/_L[0-9]{3}_nohost_R1\.fastq\.gz$//' |
+    sort -u
+)
+
+for sample in "${SAMPLES[@]}"; do
+
+    BAM="${OUTDIR}/bam/${sample}.sorted.bam"
+
+    if [[ -s "${BAM}" && -s "${BAM}.bai" ]]; then
+        echo "Skipping completed sample: ${sample}"
+        continue
+    fi
+
+    mapfile -t R1_FILES < <(
+        find "${READ_DIR}" -maxdepth 1 -type f \
+            -name "${sample}_L*_nohost_R1.fastq.gz" |
+        sort
+    )
+
+    mapfile -t R2_FILES < <(
+        find "${READ_DIR}" -maxdepth 1 -type f \
+            -name "${sample}_L*_nohost_R2.fastq.gz" |
+        sort
+    )
+
+    if [[ ${#R1_FILES[@]} -eq 0 ]]; then
+        echo "ERROR: no R1 files found for ${sample}" >&2
+        exit 1
+    fi
+
+    if [[ ${#R1_FILES[@]} -ne ${#R2_FILES[@]} ]]; then
+        echo "ERROR: unequal R1/R2 lane counts for ${sample}" >&2
+        exit 1
+    fi
+
+    R1=$(IFS=,; echo "${R1_FILES[*]}")
+    R2=$(IFS=,; echo "${R2_FILES[*]}")
+
+    echo "Mapping ${sample} with ${#R1_FILES[@]} lane pair(s)"
+
+    bowtie2 \
+        --very-sensitive \
+        --no-unal \
+        -x "${INDEX}" \
+        -1 "${R1}" \
+        -2 "${R2}" \
+        -p "${THREADS}" \
+        2> "${OUTDIR}/logs/${sample}.bowtie2.log" |
+    samtools sort \
+        -@ "${THREADS}" \
+        -m 2G \
+        -T "${PBS_JOBFS}/${sample}" \
+        -o "${BAM}" -
+
+    samtools index -@ "${THREADS}" "${BAM}"
+
+    samtools flagstat \
+        -@ "${THREADS}" \
+        "${BAM}" \
+        > "${OUTDIR}/logs/${sample}.flagstat.txt"
+done
+
+echo "Competitive MAG mapping completed."

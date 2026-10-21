@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=32
+#PBS -l mem=32GB
+#PBS -l walltime=02:00:00
+#PBS -l jobfs=10GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -N kofam_fix8
+#PBS -j oe
+
+cd /path/to/metagenomics_project || exit 1
+
+module load hmmer/3.4
+module load parallel/20191022
+
+tools/kofam_scan/exec_annotation \
+  -c tools/kofam_scan/config.yml \
+  --cpu 32 \
+  -f detail-tsv \
+  -o results/functional_annotation/kofamscan/repaired_8_MAGs_kofam_detail.tsv \
+  --tmp-dir "$PBS_JOBFS/kofam_tmp" \
+  results/functional_annotation/kofamscan/repaired_8_MAGs_proteins.faa

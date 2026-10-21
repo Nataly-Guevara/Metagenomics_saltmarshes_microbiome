@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=24:00:00
+#PBS -l mem=128GB
+#PBS -l ncpus=16
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+
+cd /path/to/metagenomics_project
+
+SIF="containers/megahit_1.2.9.sif"
+
+SAMPLE="10_ACP_NAT_BS_22TNJ5LT3_ATACATCACA-TCTCCATTGA"
+
+R1="data/nohost_merged_samples/${SAMPLE}_nohost_merged_R1.fastq.gz"
+R2="data/nohost_merged_samples/${SAMPLE}_nohost_merged_R2.fastq.gz"
+
+OUTDIR="assemblies/megahit_pilot/${SAMPLE}"
+
+mkdir -p assemblies/megahit_pilot
+
+apptainer exec "$SIF" megahit \
+  -1 "$R1" \
+  -2 "$R2" \
+  -o "$OUTDIR" \
+  --presets meta-large \
+  --min-contig-len 1000 \
+  -t 16
+
+echo "MEGAHIT pilot assembly completed for ${SAMPLE}"

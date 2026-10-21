@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l ncpus=8
+#PBS -l mem=64GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+#PBS -N bt2_host_index
+#PBS -o logs/bt2_host_index.o
+#PBS -e logs/bt2_host_index.e
+
+module load bowtie2/2.3.5.1
+
+cd /path/to/metagenomics_project
+
+mkdir -p references/host_salicornia_virginica/bowtie2_index logs
+
+bowtie2-build \
+  --threads 8 \
+  references/host_salicornia_virginica/salicornia_virginica_genome.fna \
+  references/host_salicornia_virginica/bowtie2_index/salicornia_virginica

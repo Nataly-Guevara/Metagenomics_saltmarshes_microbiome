@@ -1,0 +1,36 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=4
+#PBS -l mem=16GB
+#PBS -l walltime=04:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -o mapping/competitive_MAGs/logs/MAG_depth_matrix.log
+
+set -euo pipefail
+
+module load samtools/1.23.1
+
+BAMDIR="mapping/competitive_MAGs/bam"
+OUTDIR="mapping/competitive_MAGs/contig_depth"
+
+mkdir -p "$OUTDIR"
+mkdir -p mapping/competitive_MAGs/logs
+
+bam_count=0
+
+for bam in "$BAMDIR"/*.sorted.bam
+do
+    sample=$(basename "$bam" .sorted.bam)
+
+    echo "Processing: $sample"
+
+    samtools coverage "$bam" \
+        > "$OUTDIR/${sample}.coverage.tsv"
+
+    bam_count=$((bam_count + 1))
+done
+
+echo "Coverage calculation completed for $bam_count BAM files."

@@ -1,0 +1,34 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=8
+#PBS -l mem=16GB
+#PBS -l walltime=02:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -N prodigal_fix8
+#PBS -j oe
+
+cd /path/to/metagenomics_project || exit 1
+
+IN_DIR="results/dRep_combined_binners_MQ_plus/gtdbtk_input_fa"
+PROTEIN_DIR="results/functional_annotation/prodigal/proteins"
+GENE_DIR="results/functional_annotation/prodigal/genes"
+GFF_DIR="results/functional_annotation/prodigal/gff"
+
+find "$PROTEIN_DIR" -name '*.faa' -size 0 -print0 |
+xargs -0 -n 1 -P 8 bash -c '
+    faa="$1"
+    mag=$(basename "$faa" .faa)
+
+    ~/.local/bin/prodigal \
+      -i "'"$IN_DIR"'/${mag}.fa" \
+      -a "'"$PROTEIN_DIR"'/${mag}.faa" \
+      -d "'"$GENE_DIR"'/${mag}.fna" \
+      -o "'"$GFF_DIR"'/${mag}.gff" \
+      -f gff \
+      -p meta \
+      -q
+' _
+
+echo "Remaining zero-byte protein files:"
+find "$PROTEIN_DIR" -name '*.faa' -size 0 | wc -l

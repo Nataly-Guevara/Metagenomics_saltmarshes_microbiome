@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=1
+#PBS -l mem=8GB
+#PBS -l walltime=04:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N H4_carrier_final
+
+set -euo pipefail
+cd /path/to/metagenomics_project
+
+python3 scripts/test_functional_carrier_null_final1999.py

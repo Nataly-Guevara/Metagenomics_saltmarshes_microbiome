@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l mem=64GB
+#PBS -l ncpus=8
+#PBS -l jobfs=10GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+
+cd /path/to/metagenomics_project
+
+SAMPLE="10_ACP_NAT_BS_22TNJ5LT3_ATACATCACA-TCTCCATTGA"
+
+BIN_DIR="bins/metabat2_pilot/${SAMPLE}"
+OUT_DIR="results/checkm2_pilot/${SAMPLE}"
+DB="databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
+
+mkdir -p "$OUT_DIR"
+
+apptainer exec containers/checkm2.sif checkm2 predict \
+  --threads 8 \
+  --input "$BIN_DIR" \
+  --output-directory "$OUT_DIR" \
+  --database_path "$DB" \
+  -x fa
+
+echo "CheckM2 completed for ${SAMPLE}"

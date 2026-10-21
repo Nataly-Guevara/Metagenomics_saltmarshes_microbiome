@@ -1,0 +1,20 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=1
+#PBS -l mem=8GB
+#PBS -l walltime=02:00:00
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -N kofam_filter
+#PBS -j oe
+
+cd /path/to/metagenomics_project || exit 1
+
+INPUT="results/functional_annotation/kofamscan/final_373_MAGs_kofam_detail.tsv"
+OUTPUT="results/functional_annotation/kofamscan/final_373_MAGs_kofam_threshold_hits.tsv"
+
+awk -F'\t' 'BEGIN{OFS="\t"; print "gene_id","KO","threshold","score","E_value","KO_definition"} $1=="*"{print $2,$3,$4,$5,$6,$7}' \
+  "$INPUT" > "$OUTPUT"
+
+echo "Threshold-passing KO assignments: $(($(wc -l < "$OUTPUT") - 1))"
+echo "Output: $OUTPUT"

@@ -1,0 +1,36 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=24:00:00
+#PBS -l mem=128GB
+#PBS -l ncpus=8
+#PBS -l jobfs=10GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+
+cd /path/to/metagenomics_project
+
+BIN_DIR="bins/metabat2_all_bins"
+OUT_DIR="results/checkm2_all_bins"
+DB="databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
+
+echo "Running CheckM2 on all MetaBAT2 bins"
+echo "BIN_DIR: $BIN_DIR"
+echo "OUT_DIR: $OUT_DIR"
+echo "DB: $DB"
+echo "Number of bins:"
+ls "$BIN_DIR"/*.fa | wc -l
+
+mkdir -p "$OUT_DIR"
+
+apptainer exec containers/checkm2.sif checkm2 predict \
+  --threads 8 \
+  --input "$BIN_DIR" \
+  --output-directory "$OUT_DIR" \
+  --database_path "$DB" \
+  -x fa
+
+echo "CheckM2 completed for all bins"
+ls -lh "$OUT_DIR"

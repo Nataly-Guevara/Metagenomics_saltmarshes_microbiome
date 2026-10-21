@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=02:00:00
+#PBS -l mem=8GB
+#PBS -l ncpus=1
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+cd /path/to/metagenomics_project
+
+IN_DIR="data/nohost_lanes"
+OUT_DIR="data/nohost_merged_samples"
+
+mkdir -p "$OUT_DIR"
+
+for sample in $(ls ${IN_DIR}/*_L001_nohost_R1.fastq.gz | sed 's|.*/||' | sed 's/_L001_nohost_R1.fastq.gz//'); do
+
+    echo "Merging sample: $sample"
+
+    cat ${IN_DIR}/${sample}_L001_nohost_R1.fastq.gz \
+        ${IN_DIR}/${sample}_L002_nohost_R1.fastq.gz \
+        ${IN_DIR}/${sample}_L003_nohost_R1.fastq.gz \
+        > ${OUT_DIR}/${sample}_nohost_merged_R1.fastq.gz
+
+    cat ${IN_DIR}/${sample}_L001_nohost_R2.fastq.gz \
+        ${IN_DIR}/${sample}_L002_nohost_R2.fastq.gz \
+        ${IN_DIR}/${sample}_L003_nohost_R2.fastq.gz \
+        > ${OUT_DIR}/${sample}_nohost_merged_R2.fastq.gz
+
+done
+
+echo "Merging completed."

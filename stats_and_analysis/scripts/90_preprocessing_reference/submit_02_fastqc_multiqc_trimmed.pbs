@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=04:00:00
+#PBS -l ncpus=8
+#PBS -l mem=16GB
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+#PBS -N qc_trimmed_metaG
+#PBS -o logs/qc_trimmed_metaG.o
+#PBS -e logs/qc_trimmed_metaG.e
+
+module load fastqc/0.12.1 multiqc/1.9
+
+cd /path/to/metagenomics_project
+
+./scripts/02_fastqc_multiqc_trimmed.sh

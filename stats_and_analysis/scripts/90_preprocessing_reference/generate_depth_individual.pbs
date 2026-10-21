@@ -1,0 +1,43 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=06:00:00
+#PBS -l mem=64GB
+#PBS -l ncpus=8
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+
+export TERM=xterm
+
+cd /path/to/metagenomics_project
+
+if [ -z "$SAMPLE" ]; then
+    echo "ERROR: SAMPLE variable is not set."
+    exit 1
+fi
+
+BAM="mapping/individual/${SAMPLE}/${SAMPLE}_mapped_sorted.bam"
+OUTDIR="mapping/individual/${SAMPLE}/depth"
+DEPTH="${OUTDIR}/depth.txt"
+
+echo "Generating depth file"
+echo "SAMPLE: ${SAMPLE}"
+echo "BAM: ${BAM}"
+echo "OUTDIR: ${OUTDIR}"
+echo "DEPTH: ${DEPTH}"
+
+if [ ! -s "$BAM" ]; then
+    echo "ERROR: BAM file not found or empty: ${BAM}"
+    exit 1
+fi
+
+mkdir -p "$OUTDIR"
+
+apptainer exec containers/metabat2.sif jgi_summarize_bam_contig_depths \
+  --outputDepth "$DEPTH" \
+  "$BAM"
+
+echo "Depth file completed for ${SAMPLE}"
+ls -lh "$OUTDIR"

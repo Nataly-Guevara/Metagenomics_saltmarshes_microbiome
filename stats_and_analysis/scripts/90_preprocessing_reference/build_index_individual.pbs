@@ -1,0 +1,39 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=02:00:00
+#PBS -l mem=32GB
+#PBS -l ncpus=4
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load bowtie2/2.3.5.1
+
+cd /path/to/metagenomics_project
+
+if [ -z "$SAMPLE" ]; then
+    echo "ERROR: SAMPLE variable is not set."
+    exit 1
+fi
+
+CONTIGS="assemblies/individual/${SAMPLE}/final.contigs.fa"
+INDEX_DIR="assemblies/individual/${SAMPLE}/bowtie2_index"
+INDEX_PREFIX="${INDEX_DIR}/${SAMPLE}_contigs"
+
+echo "Running Bowtie2 index build"
+echo "SAMPLE: ${SAMPLE}"
+echo "CONTIGS: ${CONTIGS}"
+echo "INDEX_DIR: ${INDEX_DIR}"
+echo "INDEX_PREFIX: ${INDEX_PREFIX}"
+
+if [ ! -s "$CONTIGS" ]; then
+    echo "ERROR: final.contigs.fa not found or empty: ${CONTIGS}"
+    exit 1
+fi
+
+mkdir -p "$INDEX_DIR"
+
+bowtie2-build "$CONTIGS" "$INDEX_PREFIX"
+
+echo "Bowtie2 index completed for ${SAMPLE}"
+ls -lh "${INDEX_DIR}"

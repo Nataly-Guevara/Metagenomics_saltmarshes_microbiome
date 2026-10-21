@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=4
+#PBS -l mem=64GB
+#PBS -l walltime=12:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N iCAMP_bench21
+
+set -euo pipefail
+
+module load R/4.4.2
+module load intel-compiler/2021.1.1
+
+export R_LIBS_USER=/path/to/local/Rlibs/4.4
+export OMP_NUM_THREADS=1
+
+cd /path/to/metagenomics_project
+
+echo "Starting full iCAMP analysis"
+date
+
+Rscript betaNTI/icamp_benchmark_21.R
+
+echo "Full iCAMP analysis completed"
+date

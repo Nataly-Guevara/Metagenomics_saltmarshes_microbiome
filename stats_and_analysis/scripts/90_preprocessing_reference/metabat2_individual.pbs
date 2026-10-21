@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l mem=128GB
+#PBS -l ncpus=8
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+export TERM=xterm
+
+cd /path/to/metagenomics_project
+
+if [ -z "$SAMPLE" ]; then
+    echo "ERROR: SAMPLE variable is not set."
+    exit 1
+fi
+
+CONTIGS="assemblies/individual/${SAMPLE}/final.contigs.fa"
+DEPTH="mapping/individual/${SAMPLE}/depth/depth.txt"
+OUTDIR="bins/metabat2_individual/${SAMPLE}"
+
+echo "Running MetaBAT2"
+echo "SAMPLE: ${SAMPLE}"
+echo "CONTIGS: ${CONTIGS}"
+echo "DEPTH: ${DEPTH}"
+echo "OUTDIR: ${OUTDIR}"
+
+if [ ! -s "$CONTIGS" ]; then
+    echo "ERROR: contigs file not found or empty: ${CONTIGS}"
+    exit 1
+fi
+
+if [ ! -s "$DEPTH" ]; then
+    echo "ERROR: depth file not found or empty: ${DEPTH}"
+    exit 1
+fi
+
+mkdir -p "$OUTDIR"
+
+apptainer exec containers/metabat2.sif metabat2 \
+  -i "$CONTIGS" \
+  -a "$DEPTH" \
+  -o "${OUTDIR}/bin" \
+  --minContig 1500 \
+  -t 8
+
+echo "MetaBAT2 binning completed for ${SAMPLE}"
+ls -lh "$OUTDIR"

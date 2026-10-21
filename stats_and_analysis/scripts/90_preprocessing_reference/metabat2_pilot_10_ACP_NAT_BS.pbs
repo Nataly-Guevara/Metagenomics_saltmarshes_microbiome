@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l walltime=12:00:00
+#PBS -l mem=128GB
+#PBS -l ncpus=8
+#PBS -l storage=scratch/YOUR_PROJECT+gdata/YOUR_PROJECT
+#PBS -l wd
+
+module load apptainer
+
+export TERM=xterm
+
+cd /path/to/metagenomics_project
+
+SAMPLE="10_ACP_NAT_BS_22TNJ5LT3_ATACATCACA-TCTCCATTGA"
+
+CONTIGS="assemblies/megahit_pilot/${SAMPLE}/final.contigs.fa"
+DEPTH="mapping/megahit_pilot/${SAMPLE}/depth/depth.txt"
+OUTDIR="bins/metabat2_pilot/${SAMPLE}"
+
+mkdir -p "$OUTDIR"
+
+apptainer exec containers/metabat2.sif metabat2 \
+  -i "$CONTIGS" \
+  -a "$DEPTH" \
+  -o "${OUTDIR}/bin" \
+  --minContig 1500 \
+  -t 8
+
+echo "MetaBAT2 binning completed for ${SAMPLE}"

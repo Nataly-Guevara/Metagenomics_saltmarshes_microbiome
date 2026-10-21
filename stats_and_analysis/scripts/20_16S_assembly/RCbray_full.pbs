@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -P YOUR_PROJECT
+#PBS -q normal
+#PBS -l ncpus=4
+#PBS -l mem=32GB
+#PBS -l walltime=12:00:00
+#PBS -l storage=scratch/YOUR_PROJECT
+#PBS -l wd
+#PBS -j oe
+#PBS -N RCbray_999
+
+module load R/4.4.2
+module load intel-compiler/2021.1.1
+export R_LIBS_USER=/path/to/local/Rlibs/4.4
+
+Rscript RCbray_full.R

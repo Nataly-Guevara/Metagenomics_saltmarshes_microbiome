@@ -6,31 +6,12 @@ The repository is designed to store **scripts, documentation, software notes, me
 
 ## Repository structure
 
-```text
-Metagenomics_saltmarshes_microbiome/
-├── README.md
-├── .gitignore
-├── metadata/
-│   ├── NCBI_accessions.md
-│   └── sample_metadata.tsv
-├── scripts/
-│   ├── 00_setup/
-│   ├── 01_quality_control/
-│   ├── 02_host_removal/
-│   ├── 03_assembly/
-│   ├── 04_mapping_depth/
-│   ├── 05_binning/
-│   ├── 06_MAG_quality/
-│   ├── 07_dereplication/
-│   └── 08_taxonomy/
-├── envs/
-│   └── software_notes.md
-├── docs/
-│   └── pipeline_overview.md
-└── results_summary/
-    ├── filtering_summary.tsv
-    └── drep_summary.tsv
-```
+| Folder | Purpose |
+| --- | --- |
+| [`metagenomics_project/`](metagenomics_project/) | Existing preprocessing and bioinformatics workflow structure. |
+| [`stats_and_analysis/`](stats_and_analysis/) | Chapter 2 statistics and ecological analyses, with scripts, inputs, and outputs organised by analysis. |
+
+The statistical analysis collection is being assembled. See its [README](stats_and_analysis/README.md) for the layout and current status.
 
 ## Data availability
 
